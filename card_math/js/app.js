@@ -58,9 +58,53 @@ function calCombination() {
 function selCombination() {
   const id = combId.value;
   combIdLabel.innerHTML = id;
+  combination = [];
+  const r = +combSize.value;
+  let limit = 52 - r + 1;
+  let remain = id - 1;
+  const cards = deck.deal();
+  let choices = cards.slice(0, limit - 1);
+  for (let i = 0; i < r; i++) {
+    choices = choices.reduce((prev, curr) => {
+      if (!combination.includes(curr)) prev.push(curr);
+      return prev;
+    }, []);
+    choices.push(cards[limit - 1 + i]);
+    if (i == r - 1) {
+      combination[i] = choices[remain];
+    } else {
+      const part = limit ** (r - 1 - i);
+      combination[i] = choices[Math.floor(remain / part)];
+      remain = remain % part;
+    }
+  }
+  selPermutation();
 }
 
-function selPermutation() {}
+function selPermutation() {
+  const n = combSize.value;
+  let id = permId.value;
+  permIdLabel.innerHTML = id;
+  if (Number.isInteger(+id) && (id = BigInt(id)) >= 1n && id <= max_perm) {
+    permId.classList.remove("is-invalid");
+    permutationArea.innerHTML = "";
+    const cards = Array.from(combination);
+    let remain = id - 1n;
+    for (let i = 1; i < n; i++) {
+      const nfact = factorial(n - i);
+      const index = remain / nfact;
+      const card = cards[index];
+      permutationArea.innerHTML += `<div class="deck-card m${card.mark} ${card.suite}"></div>`;
+      cards.splice(index.toString(), 1);
+      remain = remain % nfact;
+    }
+    const card = cards[remain];
+    permutationArea.innerHTML += `<div class="deck-card m${card.mark} ${card.suite}"></div>`;
+  } else {
+    permId.classList.add("is-invalid");
+  }
+}
+
 function calPermutation() {
   const n = combSize.value;
   permSizeLabel.innerHTML = n;
@@ -68,6 +112,7 @@ function calPermutation() {
   amount_perm.innerHTML = max_perm.toLocaleString("th-TH");
   permId.value = max_perm;
   permIdLabel.innerHTML = max_perm;
+  maxPermIdLabel.innerHTML = max_perm;
 }
 
 let deck = new Deck();
@@ -77,9 +122,13 @@ const combSizeLabel = document.getElementById("comb_size_label");
 const combSize = document.getElementById("comb_size");
 const amountComb = document.getElementById("amount_comb");
 const combId = document.getElementById("comb_id");
+const combIdLabel = document.getElementById("comb_id_label");
 const permSizeLabel = document.getElementById("perm_size_label");
 const amount_perm = document.getElementById("amount_perm");
 const permId = document.getElementById("perm_id");
 const permIdLabel = document.getElementById("perm_id_label");
+const maxPermIdLabel = document.getElementById("max_perm_id_label");
+const permutationArea = document.getElementById("permutation_area");
+let combination;
 doDeal();
 calCombination();
